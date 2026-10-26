@@ -204,6 +204,30 @@ impl<E: DeserializeError> Deserr<E> for SettingEmbeddingSettings {
     }
 }
 
+/// An explicit Quran word pair differing by exactly one leading `ال` after normalization.
+#[routes::request(no_error, proxied)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct QuranArticleFormView {
+    /// The word with its definite article.
+    #[request(required, example = json!("الكتاب"))]
+    pub with_article: String,
+    /// The corresponding word without its definite article.
+    #[request(required, example = json!("كتاب"))]
+    pub without_article: String,
+}
+
+impl From<milli::QuranArticleForm> for QuranArticleFormView {
+    fn from(form: milli::QuranArticleForm) -> Self {
+        Self { with_article: form.with_article, without_article: form.without_article }
+    }
+}
+
+impl From<QuranArticleFormView> for milli::QuranArticleForm {
+    fn from(form: QuranArticleFormView) -> Self {
+        Self { with_article: form.with_article, without_article: form.without_article }
+    }
+}
+
 /// Index settings: every option you can configure for search and index behavior.
 ///
 /// Used as the request body for PATCH settings. Only the fields you send are updated; pass `null` to reset a setting to its default.
@@ -401,6 +425,17 @@ pub struct Settings<T> {
     )]
     pub localized_attributes: Setting<Vec<LocalizedAttributesRuleView>>,
 
+    /// Explicit Quran word pairs differing by exactly one leading `ال` after normalization.
+    /// Pass an empty array or null to clear the configured forms.
+    #[request(
+        error = DeserrJsonError<InvalidSettingsQuranArticleForms>,
+        schema_type = Option<Vec<QuranArticleFormView>>,
+        schema_default = json!([]),
+        example = json!([{"withArticle": "الكتاب", "withoutArticle": "كتاب"}]),
+        skip_serializing_if = "Setting::is_not_set",
+    )]
+    pub quran_article_forms: Setting<Vec<QuranArticleFormView>>,
+
     /// When true, [facet search](https://www.meilisearch.com/docs/learn/filtering_and_sorting/search_with_facet_filters) is enabled. When false, the facet-search endpoint is disabled.
     #[request(
         error = DeserrJsonError<InvalidSettingsFacetSearch>,
@@ -500,6 +535,7 @@ impl Settings<Checked> {
             embedders: Setting::Reset,
             search_cutoff_ms: Setting::Reset,
             localized_attributes: Setting::Reset,
+            quran_article_forms: Setting::Reset,
             facet_search: Setting::Reset,
             prefix_search: Setting::Reset,
             chat: Setting::Reset,
@@ -528,6 +564,7 @@ impl Settings<Checked> {
             embedders,
             search_cutoff_ms,
             localized_attributes,
+            quran_article_forms,
             facet_search,
             prefix_search,
             chat,
@@ -554,6 +591,7 @@ impl Settings<Checked> {
             embedders,
             search_cutoff_ms,
             localized_attributes,
+            quran_article_forms,
             facet_search,
             prefix_search,
             chat,
@@ -606,6 +644,7 @@ impl Settings<Unchecked> {
             embedders: self.embedders,
             search_cutoff_ms: self.search_cutoff_ms,
             localized_attributes: self.localized_attributes,
+            quran_article_forms: self.quran_article_forms,
             facet_search: self.facet_search,
             prefix_search: self.prefix_search,
             chat: self.chat,
@@ -614,7 +653,19 @@ impl Settings<Unchecked> {
     }
 
     pub fn validate(self) -> Result<Self, milli::Error> {
-        self.validate_ranking_rules_settings()?.validate_embedding_settings()
+        self.validate_ranking_rules_settings()?
+            .validate_embedding_settings()?
+            .validate_quran_article_forms()
+    }
+
+    fn validate_quran_article_forms(mut self) -> Result<Self, milli::Error> {
+        if let Setting::Set(forms) = &mut self.quran_article_forms {
+            let canonical = milli::validate_quran_article_forms(
+                std::mem::take(forms).into_iter().map(Into::into).collect(),
+            )?;
+            *forms = canonical.into_iter().map(Into::into).collect();
+        }
+        Ok(self)
     }
 
     fn validate_ranking_rules_settings(self) -> Result<Self, milli::Error> {
@@ -693,6 +744,10 @@ impl Settings<Unchecked> {
                 .localized_attributes
                 .clone()
                 .or(self.localized_attributes.clone()),
+            quran_article_forms: other
+                .quran_article_forms
+                .clone()
+                .or(self.quran_article_forms.clone()),
             embedders: match (self.embedders.clone(), other.embedders.clone()) {
                 (Setting::NotSet, set) | (set, Setting::NotSet) => set,
                 (Setting::Set(_) | Setting::Reset, Setting::Reset) => Setting::Reset,
@@ -746,6 +801,7 @@ pub fn apply_settings_to_builder(
         embedders,
         search_cutoff_ms,
         localized_attributes: localized_attributes_rules,
+        quran_article_forms,
         facet_search,
         prefix_search,
         chat,
@@ -835,6 +891,14 @@ pub fn apply_settings_to_builder(
     match proximity_precision {
         Setting::Set(ref precision) => builder.set_proximity_precision((*precision).into()),
         Setting::Reset => builder.reset_proximity_precision(),
+        Setting::NotSet => (),
+    }
+
+    match quran_article_forms {
+        Setting::Set(forms) => {
+            builder.set_quran_article_forms(forms.iter().cloned().map(Into::into).collect())
+        }
+        Setting::Reset => builder.reset_quran_article_forms(),
         Setting::NotSet => (),
     }
 
@@ -1075,6 +1139,7 @@ pub fn settings(
     let embedders = Setting::Set(embedders);
     let search_cutoff_ms = index.search_cutoff(rtxn)?;
     let localized_attributes_rules = index.localized_attributes_rules(rtxn)?;
+    let quran_article_forms = index.quran_article_forms(rtxn)?;
     let prefix_search = index.prefix_search(rtxn)?.map(PrefixSearchSettings::from);
     let facet_search = index.facet_search(rtxn)?;
     let chat = index.chat_config(rtxn).map(ChatSettings::from)?;
@@ -1116,6 +1181,9 @@ pub fn settings(
             Some(rules) => Setting::Set(rules.into_iter().map(|r| r.into()).collect()),
             None => Setting::Reset,
         },
+        quran_article_forms: Setting::Set(
+            quran_article_forms.into_iter().map(Into::into).collect(),
+        ),
         facet_search: Setting::Set(facet_search),
         prefix_search: Setting::Set(prefix_search.unwrap_or_default()),
         chat: Setting::Set(chat),
@@ -1343,6 +1411,91 @@ pub(crate) mod test {
     use super::*;
 
     #[test]
+    fn quran_article_forms_json_and_reset() {
+        let json = serde_json::json!({
+            "quranArticleForms": [{"withArticle": "الكتاب", "withoutArticle": "كتاب"}]
+        });
+        let settings: Settings<Unchecked> = serde_json::from_value(json.clone()).unwrap();
+        assert_eq!(serde_json::to_value(settings.clone()).unwrap(), json);
+        assert_eq!(settings.clone().check().into_unchecked(), settings);
+        let parsed: Settings<Unchecked> =
+            deserr::deserialize::<_, _, DeserrJsonError>(json).unwrap();
+        assert_eq!(parsed, settings);
+
+        let absent: Settings<Unchecked> = serde_json::from_str("{}").unwrap();
+        assert_eq!(absent.quran_article_forms, Setting::NotSet);
+        let reset: Settings<Unchecked> = deserr::deserialize::<_, _, DeserrJsonError>(
+            serde_json::json!({"quranArticleForms": null}),
+        )
+        .unwrap();
+        assert_eq!(reset.quran_article_forms, Setting::Reset);
+        assert_eq!(Settings::cleared().quran_article_forms, Setting::Reset);
+        let empty: Settings<Unchecked> =
+            serde_json::from_value(serde_json::json!({"quranArticleForms": []})).unwrap();
+        assert_eq!(empty.quran_article_forms, Setting::Set(Vec::new()));
+
+        let mut merged = settings.clone();
+        merged.merge(&absent);
+        assert_eq!(merged.quran_article_forms, settings.quran_article_forms);
+        merged.merge(&empty);
+        assert_eq!(merged.quran_article_forms, empty.quran_article_forms);
+        merged.merge(&reset);
+        assert_eq!(merged.quran_article_forms, Setting::Reset);
+        merged.merge(&settings);
+        assert_eq!(merged.quran_article_forms, settings.quran_article_forms);
+    }
+
+    #[test]
+    fn quran_article_forms_reject_malformed_requests() {
+        for form in [
+            serde_json::json!({"withArticle": "الكتاب", "withoutArticle": "كتاب", "extra": true}),
+            serde_json::json!({"withArticle": "الكتاب"}),
+            serde_json::json!({"withArticle": 42, "withoutArticle": "كتاب"}),
+        ] {
+            assert!(serde_json::from_value::<QuranArticleFormView>(form.clone()).is_err());
+            let error = deserr::deserialize::<Settings<Unchecked>, _, DeserrJsonError>(
+                serde_json::json!({"quranArticleForms": [form]}),
+            )
+            .unwrap_err();
+            assert_eq!(error.code, crate::error::Code::InvalidSettingsQuranArticleForms);
+        }
+    }
+
+    #[test]
+    fn quran_article_forms_validation_uses_milli() {
+        use crate::error::{Code, ErrorCode};
+
+        let forms = vec![milli::QuranArticleForm {
+            with_article: "الكتاب".into(),
+            without_article: "كتاب".into(),
+        }];
+        let expected: Vec<QuranArticleFormView> =
+            milli::validate_quran_article_forms(forms.clone())
+                .unwrap()
+                .into_iter()
+                .map(Into::into)
+                .collect();
+        let settings = Settings::<Unchecked> {
+            quran_article_forms: Setting::Set(forms.into_iter().map(Into::into).collect()),
+            ..Default::default()
+        }
+        .validate()
+        .unwrap();
+        assert_eq!(settings.quran_article_forms, Setting::Set(expected));
+
+        let invalid = Settings::<Unchecked> {
+            quran_article_forms: Setting::Set(vec![QuranArticleFormView {
+                with_article: String::new(),
+                without_article: "كتاب".into(),
+            }]),
+            ..Default::default()
+        };
+        let error = invalid.validate().unwrap_err();
+        assert_eq!(error.error_code(), Code::InvalidSettingsQuranArticleForms);
+        assert_eq!(error.error_code().http(), actix_web::http::StatusCode::BAD_REQUEST);
+    }
+
+    #[test]
     fn test_setting_check() {
         // test no changes
         let settings = Settings {
@@ -1364,6 +1517,7 @@ pub(crate) mod test {
             pagination: Setting::NotSet,
             embedders: Setting::NotSet,
             localized_attributes: Setting::NotSet,
+            quran_article_forms: Setting::NotSet,
             search_cutoff_ms: Setting::NotSet,
             facet_search: Setting::NotSet,
             prefix_search: Setting::NotSet,
@@ -1397,6 +1551,7 @@ pub(crate) mod test {
             pagination: Setting::NotSet,
             embedders: Setting::NotSet,
             localized_attributes: Setting::NotSet,
+            quran_article_forms: Setting::NotSet,
             search_cutoff_ms: Setting::NotSet,
             facet_search: Setting::NotSet,
             prefix_search: Setting::NotSet,

@@ -197,6 +197,7 @@ pub struct Settings<'a, 't, 'i> {
     non_separator_tokens: Setting<BTreeSet<String>>,
     separator_tokens: Setting<BTreeSet<String>>,
     dictionary: Setting<BTreeSet<String>>,
+    quran_article_forms: Setting<Vec<crate::QuranArticleForm>>,
     distinct_field: Setting<String>,
     synonyms: Setting<BTreeMap<String, Vec<String>>>,
     primary_key: Setting<String>,
@@ -238,6 +239,7 @@ impl<'a, 't, 'i> Settings<'a, 't, 'i> {
             non_separator_tokens: Setting::NotSet,
             separator_tokens: Setting::NotSet,
             dictionary: Setting::NotSet,
+            quran_article_forms: Setting::NotSet,
             distinct_field: Setting::NotSet,
             synonyms: Setting::NotSet,
             primary_key: Setting::NotSet,
@@ -340,6 +342,26 @@ impl<'a, 't, 'i> Settings<'a, 't, 'i> {
         } else {
             Setting::Set(separator_tokens)
         }
+    }
+
+    pub fn set_quran_article_forms(&mut self, forms: Vec<crate::QuranArticleForm>) {
+        self.quran_article_forms = Setting::Set(forms);
+    }
+
+    pub fn reset_quran_article_forms(&mut self) {
+        self.quran_article_forms = Setting::Reset;
+    }
+
+    fn update_quran_article_forms(&mut self) -> Result<()> {
+        match &self.quran_article_forms {
+            Setting::Set(forms) => {
+                let canonical = crate::validate_quran_article_forms(forms.clone())?;
+                self.index.put_quran_article_forms(self.wtxn, &canonical)?;
+            }
+            Setting::Reset => self.index.delete_quran_article_forms(self.wtxn)?,
+            Setting::NotSet => (),
+        }
+        Ok(())
     }
 
     pub fn reset_dictionary(&mut self) {
@@ -1516,6 +1538,7 @@ impl<'a, 't, 'i> Settings<'a, 't, 'i> {
         self.update_prefix_search()?;
         self.update_facet_search()?;
         self.update_localized_attributes_rules()?;
+        self.update_quran_article_forms()?;
         self.update_disabled_typos_terms()?;
         self.update_chat_config()?;
 
@@ -1609,6 +1632,7 @@ impl<'a, 't, 'i> Settings<'a, 't, 'i> {
         self.update_separator_tokens()?;
         self.update_dictionary()?;
         self.update_localized_attributes_rules()?;
+        self.update_quran_article_forms()?;
         // Make sure to update the synonyms *after* updating the dictionary
         // as the dictionary is used by the synonyms to correctly parse them.
         self.update_synonyms()?;

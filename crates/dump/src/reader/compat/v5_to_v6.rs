@@ -425,6 +425,7 @@ impl<T> From<v5::Settings<T>> for v6::Settings<v6::Unchecked> {
             },
             embedders: v6::Setting::NotSet,
             localized_attributes: v6::Setting::NotSet,
+            quran_article_forms: v6::Setting::NotSet,
             search_cutoff_ms: v6::Setting::NotSet,
             facet_search: v6::Setting::NotSet,
             prefix_search: v6::Setting::NotSet,

@@ -219,7 +219,7 @@ pub fn partially_initialized_term_from_word(
     }
 
     let mut synonym_word_count = 0;
-    let synonyms = ctx
+    let mut synonyms: BTreeSet<Interned<Phrase>> = ctx
         .index
         .synonyms
         .remap_key_type::<SynonymsKeyCodec<&str>>()
@@ -237,6 +237,17 @@ pub fn partially_initialized_term_from_word(
             Some(ctx.phrase_interner.insert(Phrase { words }))
         })
         .collect();
+
+    // Keep the original term as the sole exact term. Explicit article variants
+    // are zero-typo, one-word derivations at the same query position, so existing
+    // exactness/proximity/highlighting logic can distinguish them correctly.
+    if !is_ngram && ctx.quran_article_forms_enabled {
+        let alternatives = ctx.index.quran_article_alternatives(ctx.txn, word)?;
+        for alternative in alternatives {
+            let alternative = ctx.word_interner.insert(alternative);
+            synonyms.insert(ctx.phrase_interner.insert(Phrase { words: vec![Some(alternative)] }));
+        }
+    }
 
     let zero_typo =
         ZeroTypoTerm { phrase: None, exact: zero_typo, prefix_of, synonyms, use_prefix_db };

@@ -48,6 +48,7 @@ macro_rules! make_locale {
             $($iso_639_1,)+
             $($iso_639_3,)+
             Cmn,
+            Qur,
         }
 
         impl From<milli::tokenizer::Language> for Locale {
@@ -55,6 +56,7 @@ macro_rules! make_locale {
                 match other {
                     $(milli::tokenizer::Language::$iso_639_3 => Locale::$iso_639_3,)+
                     milli::tokenizer::Language::Cmn => Locale::Cmn,
+                    milli::tokenizer::Language::Qur => Locale::Qur,
                 }
             }
         }
@@ -65,6 +67,7 @@ macro_rules! make_locale {
                     $(Locale::$iso_639_1 => milli::tokenizer::Language::$iso_639_3,)+
                     $(Locale::$iso_639_3 => milli::tokenizer::Language::$iso_639_3,)+
                     Locale::Cmn => milli::tokenizer::Language::Cmn,
+                    Locale::Qur => milli::tokenizer::Language::Qur,
                 }
             }
         }
@@ -77,6 +80,7 @@ macro_rules! make_locale {
                     $($iso_639_1_str => Locale::$iso_639_1,)+
                     $($iso_639_3_str => Locale::$iso_639_3,)+
                     "cmn" => Locale::Cmn,
+                    "qur" => Locale::Qur,
                     _ => return Err(LocaleFormatError { invalid_locale: s.to_string() }),
                 };
 
@@ -91,7 +95,7 @@ macro_rules! make_locale {
 
         impl std::fmt::Display for LocaleFormatError {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                let mut valid_locales = [$($iso_639_1_str),+,$($iso_639_3_str),+,"cmn"];
+                let mut valid_locales = [$($iso_639_1_str),+,$($iso_639_3_str),+,"cmn","qur"];
                 valid_locales.sort_by(|left, right| left.len().cmp(&right.len()).then(left.cmp(right)));
                 write!(f, "Unsupported locale `{}`, expected one of {}", self.invalid_locale, valid_locales.join(", "))
             }
@@ -173,3 +177,18 @@ make_locale!(
     (Zh, "zh") => (Zho, "zho"),
     (Zu, "zu") => (Zul, "zul"),
 );
+
+#[cfg(test)]
+mod quran_tests {
+    use super::Locale;
+    #[test]
+    fn quran_locale_round_trip() {
+        let locale: Locale = "qur".parse().unwrap();
+        assert_eq!(locale, Locale::Qur);
+        assert_eq!(milli::tokenizer::Language::from(locale).code(), "qur");
+        assert_eq!(Locale::from(milli::tokenizer::Language::Qur), locale);
+        assert_eq!(serde_json::to_value(locale).unwrap(), "qur");
+        assert_eq!(serde_json::from_str::<Locale>("\"qur\"").unwrap(), locale);
+        assert!("qur-loose".parse::<Locale>().is_err());
+    }
+}

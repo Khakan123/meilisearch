@@ -1,0 +1,27 @@
+    Blocking waiting for file lock on build directory
+   Compiling meilisearch v1.55.0 (C:\dev\jamia-ms\meilisearch\crates\meilisearch)
+    Finished `release` profile [optimized] target(s) in 628m 18s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running tests\integration.rs (target\release\deps\integration-ca512d62d5195978.exe)
+
+running 16 tests
+test search::locales::invalid_locales ... ok
+test search::locales::invalid_localized_attributes_rules ... ok
+test search::locales::german_search ... ok
+test search::locales::quran_locale_search_and_updates ... ok
+test search::locales::auto_infer_locales_at_search ... ok
+test search::locales::force_different_locales_with_pattern ... ok
+test search::locales::force_different_locales_with_pattern_nested ... ok
+test search::locales::force_locales_with_pattern_nested ... ok
+test search::locales::force_locales ... ok
+test search::locales::facet_search_with_localized_attributes ... ok
+test search::locales::force_locales_with_pattern ... ok
+test search::locales::simple_facet_search ... ok
+test search::locales::auto_infer_locales_at_search_with_attributes_to_search_on ... ok
+test search::locales::swedish_search ... ok
+test search::locales::simple_search ... ok
+test search::locales::settings_change ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 1000 filtered out; finished in 3.66s
+

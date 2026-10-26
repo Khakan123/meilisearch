@@ -86,6 +86,7 @@ pub struct SearchContext<'ctx> {
     pub term_interner: Interner<QueryTerm>,
     pub phrase_docids: PhraseDocIdsCache,
     pub synonym_cache: SynonymCache,
+    pub quran_article_forms_enabled: bool,
     pub restricted_fids: Option<RestrictedFids>,
     pub prefix_search: PrefixSearch,
     pub vector_store_stats: Option<VectorStoreStats>,
@@ -126,10 +127,43 @@ impl<'ctx> SearchContext<'ctx> {
             term_interner: <_>::default(),
             phrase_docids: <_>::default(),
             synonym_cache: <_>::default(),
+            quran_article_forms_enabled: false,
             restricted_fids: None,
             prefix_search,
             vector_store_stats: None,
         })
+    }
+
+    /// Article alternatives apply only to exclusively Qur’an-localized searches.
+    fn prepare_quran_article_forms(&mut self, locales: Option<&Vec<Language>>) -> Result<()> {
+        self.quran_article_forms_enabled = false;
+        if locales.is_some_and(|ls| ls.as_slice() != [Language::Qur]) {
+            return Ok(());
+        }
+        let rules = self.index.localized_attributes_rules(self.txn)?.unwrap_or_default();
+        let fids: Vec<_> = match &self.restricted_fids {
+            Some(restricted) => restricted
+                .exact
+                .iter()
+                .chain(restricted.tolerant.iter())
+                .map(|(fid, _)| *fid)
+                .collect(),
+            None => self.index.searchable_fields_ids(self.txn, self.fields_ids_map)?,
+        };
+        if fids.is_empty()
+            || !fids.iter().all(|fid| {
+                self.fields_ids_map.name(*fid).is_some_and(|name| {
+                    rules
+                        .iter()
+                        .find(|rule| rule.match_str(name) == crate::PatternMatch::Match)
+                        .is_some_and(|rule| rule.locales() == [Language::Qur])
+                })
+            })
+        {
+            return Ok(());
+        }
+        self.quran_article_forms_enabled = true;
+        Ok(())
     }
 
     pub fn is_prefix_search_allowed(&self) -> bool {
@@ -912,6 +946,7 @@ pub fn extract_tokens(
     words_limit: Option<usize>,
     locales: Option<&Vec<Language>>,
 ) -> Result<ExtractedTokens> {
+    ctx.prepare_quran_article_forms(locales)?;
     let span = tracing::trace_span!(target: "search::tokens", "tokenizer_builder");
     let entered = span.enter();
 

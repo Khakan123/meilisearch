@@ -791,6 +791,9 @@ r#"This error occurs if:
 - The value of either [`oneTypo`](/reference/api/settings/get-typotolerance) or [`twoTypos`](/reference/api/settings/get-typotolerance) is invalid. It should either be an integer or set to `null`
 "# ;
 
+InvalidSettingsQuranArticleForms               , InvalidRequest       , BAD_REQUEST,
+"The `quranArticleForms` index setting value is invalid." ;
+
 InvalidSettingsLocalizedAttributes             , InvalidRequest       , BAD_REQUEST,
 "The [`localizedAttributes`](/reference/api/settings/get-localizedattributes) index setting value is invalid." ;
 
@@ -1291,6 +1294,7 @@ impl ErrorCode for milli::Error {
                 UserError::TooManyVectors(_, _) => Code::TooManyVectors,
                 UserError::SortError { search: true, .. } => Code::InvalidSearchSort,
                 UserError::SortError { search: false, .. } => Code::InvalidDocumentSort,
+                UserError::InvalidQuranArticleForms(_) => Code::InvalidSettingsQuranArticleForms,
                 UserError::InvalidMinTypoWordLenSetting(_, _) => Code::InvalidSettingsTypoTolerance,
                 UserError::InvalidSearchEmbedder(_) => Code::InvalidSearchEmbedder,
                 UserError::InvalidSimilarEmbedder(_) => Code::InvalidSimilarEmbedder,

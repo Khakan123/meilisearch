@@ -266,6 +266,18 @@ macro_rules! make_setting_route {
 
 make_setting_routes!(
     {
+        route: "/quran-article-forms",
+        update_verb: put,
+        value_type: Vec<meilisearch_types::settings::QuranArticleFormView>,
+        err_type: meilisearch_types::deserr::DeserrJsonError<
+            meilisearch_types::error::deserr_codes::InvalidSettingsQuranArticleForms,
+        >,
+        attr: quran_article_forms,
+        camelcase_attr: "quranArticleForms",
+        body_example: json!([{ "withArticle": "الكتاب", "withoutArticle": "كتاب" }]),
+        analytics: QuranArticleFormsAnalytics
+    },
+    {
         route: "/filterable-attributes",
         update_verb: put,
         value_type: Vec<meilisearch_types::milli::FilterableAttributesRule>,

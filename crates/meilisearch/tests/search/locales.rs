@@ -955,7 +955,7 @@ async fn invalid_locales() {
     snapshot!(code, @"400 Bad Request");
     snapshot!(json_string!(response), @r###"
     {
-      "message": "Unknown value `invalid` at `.locales[0]`: expected one of `af`, `ak`, `am`, `ar`, `az`, `be`, `bn`, `bg`, `ca`, `cs`, `da`, `de`, `cy`, `el`, `en`, `eo`, `et`, `fi`, `fr`, `gu`, `he`, `hi`, `hr`, `hu`, `hy`, `id`, `it`, `jv`, `ja`, `kn`, `ka`, `km`, `ko`, `la`, `lv`, `lt`, `ml`, `mr`, `mk`, `my`, `ne`, `nl`, `nb`, `or`, `pa`, `fa`, `pl`, `pt`, `ro`, `ru`, `si`, `sk`, `sl`, `sn`, `es`, `sr`, `sv`, `ta`, `te`, `tl`, `th`, `tk`, `tr`, `uk`, `ur`, `uz`, `vi`, `yi`, `zh`, `zu`, `afr`, `aka`, `amh`, `ara`, `aze`, `bel`, `ben`, `bul`, `cat`, `ces`, `dan`, `deu`, `cym`, `ell`, `eng`, `epo`, `est`, `fin`, `fra`, `guj`, `heb`, `hin`, `hrv`, `hun`, `hye`, `ind`, `ita`, `jav`, `jpn`, `kan`, `kat`, `khm`, `kor`, `lat`, `lav`, `lit`, `mal`, `mar`, `mkd`, `mya`, `nep`, `nld`, `nob`, `ori`, `pan`, `pes`, `pol`, `por`, `ron`, `rus`, `sin`, `slk`, `slv`, `sna`, `spa`, `srp`, `swe`, `tam`, `tel`, `tgl`, `tha`, `tuk`, `tur`, `ukr`, `urd`, `uzb`, `vie`, `yid`, `zho`, `zul`, `cmn`",
+      "message": "Unknown value `invalid` at `.locales[0]`: expected one of `af`, `ak`, `am`, `ar`, `az`, `be`, `bn`, `bg`, `ca`, `cs`, `da`, `de`, `cy`, `el`, `en`, `eo`, `et`, `fi`, `fr`, `gu`, `he`, `hi`, `hr`, `hu`, `hy`, `id`, `it`, `jv`, `ja`, `kn`, `ka`, `km`, `ko`, `la`, `lv`, `lt`, `ml`, `mr`, `mk`, `my`, `ne`, `nl`, `nb`, `or`, `pa`, `fa`, `pl`, `pt`, `ro`, `ru`, `si`, `sk`, `sl`, `sn`, `es`, `sr`, `sv`, `ta`, `te`, `tl`, `th`, `tk`, `tr`, `uk`, `ur`, `uz`, `vi`, `yi`, `zh`, `zu`, `afr`, `aka`, `amh`, `ara`, `aze`, `bel`, `ben`, `bul`, `cat`, `ces`, `dan`, `deu`, `cym`, `ell`, `eng`, `epo`, `est`, `fin`, `fra`, `guj`, `heb`, `hin`, `hrv`, `hun`, `hye`, `ind`, `ita`, `jav`, `jpn`, `kan`, `kat`, `khm`, `kor`, `lat`, `lav`, `lit`, `mal`, `mar`, `mkd`, `mya`, `nep`, `nld`, `nob`, `ori`, `pan`, `pes`, `pol`, `por`, `ron`, `rus`, `sin`, `slk`, `slv`, `sna`, `spa`, `srp`, `swe`, `tam`, `tel`, `tgl`, `tha`, `tuk`, `tur`, `ukr`, `urd`, `uzb`, `vie`, `yid`, `zho`, `zul`, `cmn`, `qur`",
       "code": "invalid_search_locales",
       "type": "invalid_request",
       "link": "https://docs.meilisearch.com/errors#invalid_search_locales"
@@ -968,7 +968,7 @@ async fn invalid_locales() {
     snapshot!(code, @"400 Bad Request");
     snapshot!(json_string!(response), @r###"
     {
-      "message": "Invalid value in parameter `locales`: Unsupported locale `invalid`, expected one of af, ak, am, ar, az, be, bg, bn, ca, cs, cy, da, de, el, en, eo, es, et, fa, fi, fr, gu, he, hi, hr, hu, hy, id, it, ja, jv, ka, km, kn, ko, la, lt, lv, mk, ml, mr, my, nb, ne, nl, or, pa, pl, pt, ro, ru, si, sk, sl, sn, sr, sv, ta, te, th, tk, tl, tr, uk, ur, uz, vi, yi, zh, zu, afr, aka, amh, ara, aze, bel, ben, bul, cat, ces, cmn, cym, dan, deu, ell, eng, epo, est, fin, fra, guj, heb, hin, hrv, hun, hye, ind, ita, jav, jpn, kan, kat, khm, kor, lat, lav, lit, mal, mar, mkd, mya, nep, nld, nob, ori, pan, pes, pol, por, ron, rus, sin, slk, slv, sna, spa, srp, swe, tam, tel, tgl, tha, tuk, tur, ukr, urd, uzb, vie, yid, zho, zul",
+      "message": "Invalid value in parameter `locales`: Unsupported locale `invalid`, expected one of af, ak, am, ar, az, be, bg, bn, ca, cs, cy, da, de, el, en, eo, es, et, fa, fi, fr, gu, he, hi, hr, hu, hy, id, it, ja, jv, ka, km, kn, ko, la, lt, lv, mk, ml, mr, my, nb, ne, nl, or, pa, pl, pt, ro, ru, si, sk, sl, sn, sr, sv, ta, te, th, tk, tl, tr, uk, ur, uz, vi, yi, zh, zu, afr, aka, amh, ara, aze, bel, ben, bul, cat, ces, cmn, cym, dan, deu, ell, eng, epo, est, fin, fra, guj, heb, hin, hrv, hun, hye, ind, ita, jav, jpn, kan, kat, khm, kor, lat, lav, lit, mal, mar, mkd, mya, nep, nld, nob, ori, pan, pes, pol, por, qur, ron, rus, sin, slk, slv, sna, spa, srp, swe, tam, tel, tgl, tha, tuk, tur, ukr, urd, uzb, vie, yid, zho, zul",
       "code": "invalid_search_locales",
       "type": "invalid_request",
       "link": "https://docs.meilisearch.com/errors#invalid_search_locales"
@@ -990,7 +990,7 @@ async fn invalid_localized_attributes_rules() {
         .await;
     snapshot!(response, @r###"
     {
-      "message": "Unknown value `japan` at `.localizedAttributes[0].locales[0]`: expected one of `af`, `ak`, `am`, `ar`, `az`, `be`, `bn`, `bg`, `ca`, `cs`, `da`, `de`, `cy`, `el`, `en`, `eo`, `et`, `fi`, `fr`, `gu`, `he`, `hi`, `hr`, `hu`, `hy`, `id`, `it`, `jv`, `ja`, `kn`, `ka`, `km`, `ko`, `la`, `lv`, `lt`, `ml`, `mr`, `mk`, `my`, `ne`, `nl`, `nb`, `or`, `pa`, `fa`, `pl`, `pt`, `ro`, `ru`, `si`, `sk`, `sl`, `sn`, `es`, `sr`, `sv`, `ta`, `te`, `tl`, `th`, `tk`, `tr`, `uk`, `ur`, `uz`, `vi`, `yi`, `zh`, `zu`, `afr`, `aka`, `amh`, `ara`, `aze`, `bel`, `ben`, `bul`, `cat`, `ces`, `dan`, `deu`, `cym`, `ell`, `eng`, `epo`, `est`, `fin`, `fra`, `guj`, `heb`, `hin`, `hrv`, `hun`, `hye`, `ind`, `ita`, `jav`, `jpn`, `kan`, `kat`, `khm`, `kor`, `lat`, `lav`, `lit`, `mal`, `mar`, `mkd`, `mya`, `nep`, `nld`, `nob`, `ori`, `pan`, `pes`, `pol`, `por`, `ron`, `rus`, `sin`, `slk`, `slv`, `sna`, `spa`, `srp`, `swe`, `tam`, `tel`, `tgl`, `tha`, `tuk`, `tur`, `ukr`, `urd`, `uzb`, `vie`, `yid`, `zho`, `zul`, `cmn`",
+      "message": "Unknown value `japan` at `.localizedAttributes[0].locales[0]`: expected one of `af`, `ak`, `am`, `ar`, `az`, `be`, `bn`, `bg`, `ca`, `cs`, `da`, `de`, `cy`, `el`, `en`, `eo`, `et`, `fi`, `fr`, `gu`, `he`, `hi`, `hr`, `hu`, `hy`, `id`, `it`, `jv`, `ja`, `kn`, `ka`, `km`, `ko`, `la`, `lv`, `lt`, `ml`, `mr`, `mk`, `my`, `ne`, `nl`, `nb`, `or`, `pa`, `fa`, `pl`, `pt`, `ro`, `ru`, `si`, `sk`, `sl`, `sn`, `es`, `sr`, `sv`, `ta`, `te`, `tl`, `th`, `tk`, `tr`, `uk`, `ur`, `uz`, `vi`, `yi`, `zh`, `zu`, `afr`, `aka`, `amh`, `ara`, `aze`, `bel`, `ben`, `bul`, `cat`, `ces`, `dan`, `deu`, `cym`, `ell`, `eng`, `epo`, `est`, `fin`, `fra`, `guj`, `heb`, `hin`, `hrv`, `hun`, `hye`, `ind`, `ita`, `jav`, `jpn`, `kan`, `kat`, `khm`, `kor`, `lat`, `lav`, `lit`, `mal`, `mar`, `mkd`, `mya`, `nep`, `nld`, `nob`, `ori`, `pan`, `pes`, `pol`, `por`, `ron`, `rus`, `sin`, `slk`, `slv`, `sna`, `spa`, `srp`, `swe`, `tam`, `tel`, `tgl`, `tha`, `tuk`, `tur`, `ukr`, `urd`, `uzb`, `vie`, `yid`, `zho`, `zul`, `cmn`, `qur`",
       "code": "invalid_settings_localized_attributes",
       "type": "invalid_request",
       "link": "https://docs.meilisearch.com/errors#invalid_settings_localized_attributes"
@@ -1373,4 +1373,64 @@ async fn german_search() {
             },
         )
         .await;
+}
+
+#[actix_rt::test]
+async fn quran_locale_search_and_updates() {
+    let server = Server::new_shared();
+    let index = server.unique_index();
+    let (task, _) = index
+        .update_settings(json!({
+            "searchableAttributes": ["text"],
+            "localizedAttributes": [{"attributePatterns": ["text"], "locales": ["qur"]}],
+            "typoTolerance": {"enabled": false},
+            "prefixSearch": "disabled"
+        }))
+        .await;
+    server.wait_task(task.uid()).await.succeeded();
+    let (task, _) = index
+        .add_documents(
+            json!([
+                {"id": 1, "text": "الصَّلٰوۃ"},
+                {"id": 2, "text": "کتاب"},
+                {"id": 3, "text": "کتب"},
+                {"id": 4, "text": "رحمۃ"},
+                {"id": 5, "text": "رحمہ"},
+                {"id": 6, "text": "وَلِيِّ\u{00a0}يَ"}
+            ]),
+            Some("id"),
+        )
+        .await;
+    server.wait_task(task.uid()).await.succeeded();
+    for (query, id) in
+        [("ٱلصَّلَوٰة", 1), ("كتاب", 2), ("کتب", 3), ("رحمة", 4), ("رحمہ", 5), ("ولیی", 6)]
+    {
+        let (response, code) = index.search_post(json!({
+            "q": query, "locales": ["qur"], "attributesToHighlight": ["text"], "showMatchesPosition": true
+        })).await;
+        assert_eq!(code, 200, "{response}");
+        assert_eq!(response["hits"].as_array().unwrap().len(), 1, "{query}: {response}");
+        assert_eq!(response["hits"][0]["id"], id);
+        let raw = response["hits"][0]["text"].as_str().unwrap();
+        assert_eq!(
+            response["hits"][0]["_formatted"]["text"]
+                .as_str()
+                .unwrap()
+                .replace("<em>", "")
+                .replace("</em>", ""),
+            raw
+        );
+        for span in response["hits"][0]["_matchesPosition"]["text"].as_array().unwrap() {
+            let start = span["start"].as_u64().unwrap() as usize;
+            let length = span["length"].as_u64().unwrap() as usize;
+            assert!(raw.is_char_boundary(start) && raw.is_char_boundary(start + length));
+        }
+    }
+    let (task, _) = index.update_documents(json!([{"id": 2, "text": "الرَّحْمَة"}]), None).await;
+    server.wait_task(task.uid()).await.succeeded();
+    let (response, code) = index.search_post(json!({"q": "الرحمۃ", "locales": ["qur"]})).await;
+    assert_eq!(code, 200);
+    assert_eq!(response["hits"][0]["id"], 2);
+    let (_, code) = index.search_post(json!({"q": "کتاب", "locales": ["qur-loose"]})).await;
+    assert_eq!(code, 400);
 }

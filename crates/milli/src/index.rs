@@ -70,6 +70,7 @@ pub mod main_key {
     pub const NON_SEPARATOR_TOKENS_KEY: &str = "non-separator-tokens";
     pub const SEPARATOR_TOKENS_KEY: &str = "separator-tokens";
     pub const DICTIONARY_KEY: &str = "dictionary";
+    pub const QURAN_ARTICLE_FORMS_KEY: &str = "quran_article_forms";
     pub const USER_DEFINED_SYNONYMS_KEY: &str = "user-defined-synonyms";
     pub const WORDS_FST_KEY: &str = "words-fst";
     pub const WORDS_PREFIXES_FST_KEY: &str = "words-prefixes-fst";
@@ -1617,6 +1618,65 @@ impl Index {
             .main
             .remap_types::<Str, SerdeBincode<BTreeSet<String>>>()
             .get(rtxn, main_key::DICTIONARY_KEY)?)
+    }
+
+    /* Query-only Qur’an article forms; absent in older databases. */
+    pub fn quran_article_forms(&self, rtxn: &RoTxn<'_>) -> Result<Vec<crate::QuranArticleForm>> {
+        Ok(self
+            .main
+            .remap_types::<Str, SerdeBincode<Vec<crate::QuranArticleForm>>>()
+            .get(rtxn, main_key::QURAN_ARTICLE_FORMS_KEY)?
+            .unwrap_or_default())
+    }
+
+    /// A transaction-versioned point lookup: queries never rebuild the complete rule map.
+    pub fn quran_article_alternatives(&self, rtxn: &RoTxn<'_>, word: &str) -> Result<Vec<String>> {
+        let key = format!("quran_article_alternative:{word}");
+        Ok(self
+            .main
+            .remap_types::<Str, SerdeBincode<Vec<String>>>()
+            .get(rtxn, &key)?
+            .unwrap_or_default())
+    }
+
+    pub(crate) fn put_quran_article_forms(
+        &self,
+        wtxn: &mut RwTxn<'_>,
+        forms: &[crate::QuranArticleForm],
+    ) -> Result<()> {
+        // The caller validates/normalizes once, before entering this method.
+        self.delete_quran_article_forms(wtxn)?;
+        let mut aliases = BTreeMap::<&str, BTreeSet<&str>>::new();
+        for form in forms {
+            aliases.entry(&form.with_article).or_default().insert(&form.without_article);
+            aliases.entry(&form.without_article).or_default().insert(&form.with_article);
+        }
+        for (word, alternatives) in aliases {
+            let key = format!("quran_article_alternative:{word}");
+            let alternatives: Vec<_> = alternatives.into_iter().map(str::to_owned).collect();
+            self.main.remap_types::<Str, SerdeBincode<Vec<String>>>().put(
+                wtxn,
+                &key,
+                &alternatives,
+            )?;
+        }
+        self.main.remap_types::<Str, SerdeBincode<Vec<crate::QuranArticleForm>>>().put(
+            wtxn,
+            main_key::QURAN_ARTICLE_FORMS_KEY,
+            &forms.to_vec(),
+        )?;
+        Ok(())
+    }
+
+    pub(crate) fn delete_quran_article_forms(&self, wtxn: &mut RwTxn<'_>) -> Result<()> {
+        for form in self.quran_article_forms(wtxn)? {
+            for word in [form.with_article, form.without_article] {
+                let key = format!("quran_article_alternative:{word}");
+                self.main.remap_key_type::<Str>().delete(wtxn, &key)?;
+            }
+        }
+        self.main.remap_key_type::<Str>().delete(wtxn, main_key::QURAN_ARTICLE_FORMS_KEY)?;
+        Ok(())
     }
 
     /* synonyms */

@@ -633,6 +633,7 @@ impl IndexScheduler {
             non_separator_tokens: Setting::NotSet,
             separator_tokens: Setting::NotSet,
             dictionary: Setting::NotSet,
+            quran_article_forms: Setting::NotSet,
             synonyms: Setting::NotSet,
             distinct_attribute: Setting::NotSet,
             proximity_precision: Setting::Set(

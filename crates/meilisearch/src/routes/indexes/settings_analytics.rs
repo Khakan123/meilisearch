@@ -734,3 +734,14 @@ impl ChatAnalytics {
         SettingsAnalytics { chat: self, ..Default::default() }
     }
 }
+
+/// Do not send external linguistic rule contents in analytics.
+pub struct QuranArticleFormsAnalytics;
+impl QuranArticleFormsAnalytics {
+    pub fn new(_: Option<&Vec<meilisearch_types::settings::QuranArticleFormView>>) -> Self {
+        Self
+    }
+    pub fn into_settings(self) -> SettingsAnalytics {
+        SettingsAnalytics::default()
+    }
+}

@@ -349,6 +349,7 @@ pub(crate) mod test {
             embedders: Setting::NotSet,
             search_cutoff_ms: Setting::NotSet,
             localized_attributes: Setting::NotSet,
+            quran_article_forms: Setting::NotSet,
             facet_search: Setting::NotSet,
             prefix_search: Setting::NotSet,
             chat: Setting::NotSet,

@@ -85,6 +85,11 @@ macro_rules! test_setting_routes {
 
 test_setting_routes!(
     {
+        setting: quran_article_forms,
+        update_verb: put,
+        default_value: []
+    },
+    {
         setting: filterable_attributes,
         update_verb: put,
         default_value: []

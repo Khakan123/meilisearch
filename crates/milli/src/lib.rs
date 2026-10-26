@@ -49,6 +49,23 @@ use std::fmt;
 use std::hash::BuildHasherDefault;
 
 use charabia::normalizer::{CharNormalizer, CompatibilityDecompositionNormalizer};
+pub use charabia::quran_articles::QuranArticleForm;
+
+/// Validate explicit Qur’an article pairs without embedding lexical data.
+pub fn validate_quran_article_forms(forms: Vec<QuranArticleForm>) -> Result<Vec<QuranArticleForm>> {
+    let forms = charabia::quran_articles::QuranArticleForms::new(forms)
+        .map_err(UserError::InvalidQuranArticleForms)?;
+    if forms.forms().iter().any(|form| {
+        form.with_article.len() > MAX_WORD_LENGTH || form.without_article.len() > MAX_WORD_LENGTH
+    }) {
+        return Err(UserError::InvalidQuranArticleForms(format!(
+            "article forms must not exceed {MAX_WORD_LENGTH} UTF-8 bytes"
+        ))
+        .into());
+    }
+    Ok(forms.forms().to_vec())
+}
+
 pub use documents::GeoSortStrategy;
 pub use filter_parser::{
     Condition, FilterCondition, FilterConstraintFuel, IndexFilterCondition, LightToken, Span,
